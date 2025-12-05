@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_test/new_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   runApp(const MyApp());
@@ -41,12 +42,33 @@ class _MyHomePageState extends State<MyHomePage> {
     setState(() {
       _counter++;
     });
+    _saveCounter(); //값 변경 후 저장
   }
 
   void _reset() {
     setState(() {
       _counter = 0;
     });
+    _saveCounter(); // 리셋 후 저장
+  }
+
+  Future<void> _saveCounter() async{
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('counter', _counter);
+  }
+
+  Future<void> _loadCounter() async{
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getInt('counter') ?? 0; // 값이 없으면 0
+    setState(() {
+      _counter = saved;
+    });
+  }
+
+  @override
+  void initState(){
+    super.initState();
+    _loadCounter(); //앱 시작될 때 저장된 값 불러오기
   }
 
   @override
@@ -73,6 +95,7 @@ class _MyHomePageState extends State<MyHomePage> {
     );  
   }
 }
+
 class CounterDescription extends StatelessWidget{
   const CounterDescription({super.key});
 
