@@ -6,22 +6,43 @@ void main() {
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
   @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp>{
+  bool _isDarkMode = false; 
+
+  void _toogleTheme(){
+    setState((){
+      _isDarkMode = !_isDarkMode;
+    });
+  }
+    @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(colorScheme: ColorScheme.fromSeed(seedColor: Colors.blueAccent),useMaterial3: true),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      darkTheme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blueAccent, brightness: Brightness.dark),
+        useMaterial3: true,
+      ),
+      themeMode: _isDarkMode ? ThemeMode.dark: ThemeMode.light,
+      home: MyHomePage(title: 'Flutter Demo Home Page', onToggleTheme: _toogleTheme, isDarkMode: _isDarkMode,),
+      debugShowCheckedModeBanner: false,
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
 
+class MyHomePage extends StatefulWidget {
+  const MyHomePage({super.key, required this.title, required this.onToggleTheme, required this.isDarkMode});
+
+  final VoidCallback onToggleTheme;
+  final bool isDarkMode;
   final String title;
 
   @override
@@ -52,11 +73,12 @@ class _MyHomePageState extends State<MyHomePage> {
     _saveCounter(); // 리셋 후 저장
   }
 
-  Future<void> _saveCounter() async{
+  Future<void> _saveCounter() async{ //future: 미래에 완료되는 작업을 나타내는 타입. 비동기 작업을 표햔하는 dart의 기본 타입
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt('counter', _counter);
   }
 
+  //future<void>의 의미는 "이 작업은 비동기로 진행되며, 완료되면 아무 값도 돌려주지 않는다."
   Future<void> _loadCounter() async{
     final prefs = await SharedPreferences.getInstance();
     final saved = prefs.getInt('counter') ?? 0; // 값이 없으면 0
@@ -77,6 +99,9 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
+        actions: [
+          IconButton(onPressed: widget.onToggleTheme, icon: Icon(widget.isDarkMode ? Icons.dark_mode : Icons.light_mode)),
+        ],
       ),
 
       body: Center(
